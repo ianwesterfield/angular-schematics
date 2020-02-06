@@ -1,0 +1,33 @@
+{
+  "id": "component",
+  "title": "A basic angular component schematic",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the component."
+    },
+    "path": {
+      "type": "string",
+      "description": "The path of the generated component.",
+      "default": ""
+    },
+    "spec": {
+      "type": "string",
+      "description": "Specifies if a spec file is generated.",
+      "default": "true"
+    },
+    "project": {
+      "type": "string",
+      "description": "Specifies the project to run the schematic in.",
+      "default": "defaultProject"
+    },
+    "declaringModule": {
+      "type": "string",
+      "description": "Specifies the path and name of the module (excluding '.module.ts') the component will be declared in."
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

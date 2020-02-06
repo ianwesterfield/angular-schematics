@@ -5,6 +5,11 @@
       "description": "An empty schematic.",
       "factory": "./empty/index#empty",
       "schema": "./empty/schema.json"
+    },
+    "component": {
+      "description": "A basic Angular component schematic.",
+      "factory": "./component/index#component",
+      "schema": "./component/schema.json"
     }
   }
 }
