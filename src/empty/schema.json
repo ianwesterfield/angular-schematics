@@ -1,0 +1,19 @@
+{
+  "id": "empty",
+  "title": "An empty angular schematic",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the component."
+    },
+    "spec": {
+      "type": "string",
+      "description": "Specifies if a spec file is generated.",
+      "default": "true"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
