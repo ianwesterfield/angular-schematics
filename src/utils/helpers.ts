@@ -1,6 +1,35 @@
 import { Tree, SchematicsException, Rule, filter } from '@angular-devkit/schematics';
 import * as ts from 'typescript';
 import { experimental } from '@angular-devkit/core';
+import { NodeDependency, getPackageJsonDependency, addPackageJsonDependency } from 'schematics-utilities';
+import * as chalk from 'chalk';
+
+/**
+ * Adds or updates the given package.json dependencies
+ *
+ * @export
+ * @param {Tree} tree The working file structure
+ * @param {NodeDependency[]} dependencies The list of dependencies for this component
+ */
+export function addPackageDependencies(tree: Tree, dependencies: NodeDependency[]) {
+  const dependencyChanges: NodeDependency[] = [];
+
+  dependencies.forEach(newDep => {
+    const existingDep = getPackageJsonDependency(tree, newDep.name);
+
+    // only apply the dependency doesn't already exist, warn if a different version is already installed
+    if (existingDep) {
+      if (existingDep.version !== newDep.version) {
+        console.log(chalk`{green SKIP} {italic package.json} -> {underline ${newDep.name}@${newDep.version}} {yellow.bold version ${existingDep.version} already installed }`);
+      }
+    }
+    else {
+      dependencyChanges.push(newDep);
+    }
+  });
+
+  dependencyChanges.forEach(dependency => addPackageJsonDependency(tree, dependency));
+}
 
 /**
  * Gets the provided file as a TypeScript source object.
