@@ -1,12 +1,16 @@
-import { Rule, SchematicContext, Tree, apply, url, mergeWith, MergeStrategy, move, template, chain } from '@angular-devkit/schematics';
-import { normalize, strings, experimental } from '@angular-devkit/core';
 import { addDeclarationToModule, NodeDependency, NodeDependencyType } from 'schematics-utilities';
+import { normalize, strings, experimental } from '@angular-devkit/core';
+import { Rule, SchematicContext, Tree, apply, url, mergeWith, MergeStrategy, move, template, chain } from '@angular-devkit/schematics';
 import * as helpers from '../utils/helpers';
+import * as _ from 'lodash';
 
 const packageDependencies: NodeDependency[] = [
   { type: NodeDependencyType.Default, name: '@angular-devkit/core', version: '^8.2.25' },
+  { type: NodeDependencyType.Default, name: '@angular/animations', version: '^8.2.14' },
   { type: NodeDependencyType.Default, name: '@angular/common', version: '^8.2.14' },
   { type: NodeDependencyType.Default, name: '@angular/core', version: '^8.2.14' },
+  { type: NodeDependencyType.Default, name: '@angular/forms', version: '^8.2.14' },
+  { type: NodeDependencyType.Default, name: '@angular/platform-browser', version: '^8.2.14' },
   { type: NodeDependencyType.Default, name: '@progress/kendo-angular-buttons', version: '^5.0.0', },
   { type: NodeDependencyType.Default, name: '@progress/kendo-angular-common', version: '^1.0.0' },
   { type: NodeDependencyType.Default, name: '@progress/kendo-angular-dateinputs', version: '^4.0.0' },
@@ -24,7 +28,23 @@ const packageDependencies: NodeDependency[] = [
   { type: NodeDependencyType.Default, name: '@progress/kendo-data-query', version: '^1.0.0' },
   { type: NodeDependencyType.Default, name: '@progress/kendo-drawing', version: '^1.0.0' },
   { type: NodeDependencyType.Default, name: '@progress/kendo-theme-material', version: '^3.4.0' },
+  { type: NodeDependencyType.Default, name: 'zone.js', version: '~0.9.1' },
 ];
+
+const packageStyles: any[] = [
+  "testing",
+  "testing 2",
+  "testing 3"
+];
+
+const packageAssets: any[] = [
+  "testing",
+  {
+    "glob": "**/*.css",
+    "input": "./node_modules/some-module",
+    "output": "./assets/"
+  }
+]
 
 /**
  * Main entry for the component generation schematic
@@ -34,13 +54,11 @@ const packageDependencies: NodeDependency[] = [
  * @returns {Rule}
  */
 export function component(options: any): Rule {
-  return (tree: Tree) => applySchematic(options, tree);
+  return (tree: Tree, context: SchematicContext) => applySchematic(options, tree, context);
 }
 
-function applySchematic(options: any, tree: Tree): Rule {
-
+function applySchematic(options: any, tree: Tree, context: SchematicContext): Rule {
   const folderPath = normalize(strings.dasherize(options.path));
-  const workspace = helpers.getWorkspace(options, tree);
   let files = url('./files');
 
   // compose the desired file structure changes
@@ -54,33 +72,42 @@ function applySchematic(options: any, tree: Tree): Rule {
   ]);
 
   // handle non-rule transformations
-  helpers.addPackageDependencies(tree, packageDependencies);
+  helpers.addPackageDependencies(context, tree, packageDependencies);
 
-  // compose the transformation rules
+  // stage the transformation rules
   const templateRule = mergeWith(updatedTree, MergeStrategy.Default);
-  const updateTargetModuleRule = updateTargetModule(options, workspace);
+  const updateTargetModuleRule = updateTargetModule(options);
+  const workspaceAssetsUpdate = updateWorkspaceBuildOptionCollection(BuildOptionCollectionType.ASSETS, packageAssets);
+  const workspaceStylesUpdate = updateWorkspaceBuildOptionCollection(BuildOptionCollectionType.STYLES, packageStyles);
 
   // chain and apply all the rules to the working tree
   const chainedRules = chain([
     templateRule,
-    updateTargetModuleRule
+    updateTargetModuleRule,
+    workspaceAssetsUpdate,
+    workspaceStylesUpdate
   ]);
 
   return chainedRules;
 }
 
-function updateTargetModule(options: any, workspace: experimental.workspace.WorkspaceSchema): Rule {
-  return (tree: Tree, context: SchematicContext): Tree => {
+function updateTargetModule(options: any): Rule {
+  return (tree: Tree): Tree => {
 
-    if (!options.declaringModule || options.declaringModule === '') {
+    if (!options.module || options.module === '') {
+      return tree;
+    }
+
+    const workspace = helpers.getWorkspace(tree);
+
+    if (!workspace) {
       return tree;
     }
 
     options.project = (options.project === 'defaultProject') ? workspace.defaultProject : options.project;
 
     const exportedComponentName = `${strings.classify(options.name)}Component`;
-    const rootModulePath = `${options.declaringModule}.module.ts`;
-
+    const rootModulePath = `${options.module}.module.ts`;
     const tsFile = helpers.getTsSourceFile(tree, rootModulePath);
 
     // stage module declare[] changes
@@ -98,4 +125,34 @@ function updateTargetModule(options: any, workspace: experimental.workspace.Work
     tree.commitUpdate(rec);
     return tree;
   }
+}
+
+function updateWorkspaceBuildOptionCollection(type: BuildOptionCollectionType, collection: any[]): Rule {
+  return (tree: Tree) => {
+    const workspace = helpers.getWorkspace(tree);
+
+    if (!workspace) {
+      return;
+    }
+
+    // get the existing array
+    const project: string = Object.keys(workspace['projects'])[0];
+    const projectObject = workspace.projects[project];
+    let existingArray = projectObject.architect.build.options[type] as string[];
+
+    // update the existing array
+    const updatedArray = helpers.mergeDedupe([existingArray, collection]);
+    const uniqueArray = _.uniqWith(updatedArray, _.isEqual);
+    existingArray.splice(0);
+    existingArray.push(...uniqueArray);
+
+    // commit the changes
+    tree.overwrite('angular.json', JSON.stringify(workspace, null, 2));
+  }
+}
+
+const enum BuildOptionCollectionType {
+  ASSETS = 'assets',
+  STYLES = 'styles',
+  SCRIPTS = 'scripts'
 }

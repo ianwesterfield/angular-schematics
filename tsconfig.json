@@ -15,6 +15,7 @@
     "noImplicitThis": true,
     "noUnusedParameters": false,
     "noUnusedLocals": false,
+    "resolveJsonModule": true,
     "rootDir": "src/",
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,

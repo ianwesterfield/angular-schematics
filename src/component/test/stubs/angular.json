@@ -1,0 +1,16 @@
+{
+  "projects": {
+    "test": {
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "assets": [],
+            "styles": [],
+            "scripts": []
+          }
+        }
+      }
+    }
+  }
+}

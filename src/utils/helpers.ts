@@ -1,8 +1,9 @@
-import { Tree, SchematicsException, Rule, filter } from '@angular-devkit/schematics';
-import * as ts from 'typescript';
 import { experimental } from '@angular-devkit/core';
 import { NodeDependency, getPackageJsonDependency, addPackageJsonDependency } from 'schematics-utilities';
+import { NodePackageInstallTask, RunSchematicTask } from '@angular-devkit/schematics/tasks';
+import { Tree, SchematicsException, Rule, filter, SchematicContext } from '@angular-devkit/schematics';
 import * as chalk from 'chalk';
+import * as ts from 'typescript';
 
 /**
  * Adds or updates the given package.json dependencies
@@ -11,7 +12,7 @@ import * as chalk from 'chalk';
  * @param {Tree} tree The working file structure
  * @param {NodeDependency[]} dependencies The list of dependencies for this component
  */
-export function addPackageDependencies(tree: Tree, dependencies: NodeDependency[]) {
+export function addPackageDependencies(context: SchematicContext, tree: Tree, dependencies: NodeDependency[]) {
   const dependencyChanges: NodeDependency[] = [];
 
   dependencies.forEach(newDep => {
@@ -28,7 +29,12 @@ export function addPackageDependencies(tree: Tree, dependencies: NodeDependency[
     }
   });
 
-  dependencyChanges.forEach(dependency => addPackageJsonDependency(tree, dependency));
+  if (dependencyChanges.length > 0) {
+    dependencyChanges.forEach(dependency => addPackageJsonDependency(tree, dependency));
+
+    // doing the install this way instead of creating a task for each dependency allows everything to be installed at once instead of one at a time.
+    context.addTask(new NodePackageInstallTask());
+  }
 }
 
 /**
@@ -57,8 +63,8 @@ export function getTsSourceFile(tree: Tree, path: string): ts.SourceFile {
  * @param {Tree} tree The working file structure
  * @returns {experimental.workspace.WorkspaceSchema}
  */
-export function getWorkspace(options: any, tree: Tree): experimental.workspace.WorkspaceSchema {
-  const workspace = tree.read('/angular.json');
+export function getWorkspace(tree: Tree): any {
+  const workspace = tree.read('angular.json');
 
   if (!workspace) {
     throw new SchematicsException('angular.json file not found in root of project!');
@@ -81,4 +87,14 @@ export function specFilter(options: any): Rule {
   }
 
   return filter(path => !path.match(/test\.ts$/));
+}
+
+/**
+ * Combines and de-duplicates all arrays in the input collection.
+ *
+ * @param {Array<Array<any>>} arrays The options for the running schema operation
+ * @returns {Array<any>} The new array containing the combined and de-duplicated elements of all input array.
+ */
+export const mergeDedupe = (arrays: any[]) => {
+  return [...new Set([].concat(...arrays))];
 }

@@ -22,9 +22,9 @@
       "description": "Specifies the project to run the schematic in.",
       "default": "defaultProject"
     },
-    "declaringModule": {
+    "module": {
       "type": "string",
-      "description": "Specifies the path and name of the module (excluding '.module.ts') the component will be declared in."
+      "description": "Specifies the path and name of the declaring module (excluding '.module.ts')."
     }
   },
   "required": [
