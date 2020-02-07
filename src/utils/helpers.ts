@@ -64,13 +64,20 @@ export function getTsSourceFile(tree: Tree, path: string): ts.SourceFile {
  * @returns {experimental.workspace.WorkspaceSchema}
  */
 export function getWorkspace(tree: Tree): any {
-  const workspace = tree.read('angular.json');
+  const workspace = tree.read('./angular.json');
 
   if (!workspace) {
     throw new SchematicsException('angular.json file not found in root of project!');
   }
 
   return JSON.parse(workspace.toString());
+}
+
+export function getProjectRoot(options: any, tree: Tree): string {
+  const workspace = getWorkspace(tree);
+  options.project = (options.project === 'defaultProject') ? workspace.defaultProject : options.project;
+  const project = workspace.projects[options.project];
+  return `${project.root}/${project.sourceRoot}`;
 }
 
 /**

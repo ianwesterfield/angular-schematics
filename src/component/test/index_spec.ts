@@ -44,8 +44,10 @@ describe('when component schematic', () => {
       const runner = new SchematicTestRunner('schematics', collectionPath);
       const tree = runner.runSchematic('component', { name: nameOption, path: pathOption }, testTree);
 
+      console.log(tree.files);
+
       tree.files.slice(3, 6).forEach((filePath: string) => {
-        expect(filePath.includes(`/${pathOption}/${nameOption}`)).toEqual(true);
+        expect(filePath.startsWith(`/src/${pathOption}/`)).toEqual(true);
       });
     });
 
@@ -64,7 +66,8 @@ describe('when component schematic', () => {
       const nameOption = 'test';
       const runner = new SchematicTestRunner('schematics', collectionPath);
       const tree = runner.runSchematic('component', { name: nameOption }, testTree);
-      const component = tree.readContent(`./${nameOption}.component.ts`);
+
+      const component = tree.readContent(`./src/${nameOption}/${nameOption}.component.ts`);
 
       expect(component).toContain(`export class ${strings.classify(nameOption)}Component`);
     });

@@ -1,7 +1,7 @@
 {
   "name": "angular-schematics",
-  "version": "0.0.0",
-  "description": "A blank schematics",
+  "version": "1.0.0",
+  "description": "Testing schematics",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && jasmine src/**/*_spec.js"

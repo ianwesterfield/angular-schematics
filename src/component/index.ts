@@ -58,8 +58,10 @@ export function component(options: any): Rule {
 }
 
 function applySchematic(options: any, tree: Tree, context: SchematicContext): Rule {
-  const folderPath = normalize(strings.dasherize(options.path));
   let files = url('./files');
+
+  const root = helpers.getProjectRoot(options, tree);
+  const folderPath = normalize(strings.dasherize(`${root}/${options.path}/${options.name}`));
 
   // compose the desired file structure changes
   const updatedTree = apply(files, [
@@ -104,14 +106,12 @@ function updateTargetModule(options: any): Rule {
       return tree;
     }
 
-    options.project = (options.project === 'defaultProject') ? workspace.defaultProject : options.project;
-
     const exportedComponentName = `${strings.classify(options.name)}Component`;
     const rootModulePath = `${options.module}.module.ts`;
     const tsFile = helpers.getTsSourceFile(tree, rootModulePath);
 
     // stage module declare[] changes
-    const changes = addDeclarationToModule(tsFile, rootModulePath, exportedComponentName, `./${options.name}.component`);
+    const changes = addDeclarationToModule(tsFile, rootModulePath, exportedComponentName, `./ ${options.name}.component`);
 
     // apply the stages changes
     const rec = tree.beginUpdate(rootModulePath);

@@ -1,6 +1,8 @@
 {
   "projects": {
     "test": {
+      "root": "",
+      "sourceRoot": "src",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
@@ -12,5 +14,6 @@
         }
       }
     }
-  }
+  },
+  "defaultProject": "test"
 }
