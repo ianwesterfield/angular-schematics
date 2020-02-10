@@ -1,7 +1,12 @@
 {
-  "name": "angular-schematics",
-  "version": "1.0.0",
-  "description": "Testing schematics",
+  "name": "@enquiren/test-angular-schematics",
+  "version": "1.0.1",
+  "description": "Testing various Angular schematics.",
+  "author": {
+    "email": "npm@enquiren.com",
+    "name": "Ian Westerfield",
+    "url": "https://www.enquiren.com"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && jasmine src/**/*_spec.js"
@@ -13,7 +18,6 @@
   "keywords": [
     "schematics"
   ],
-  "author": "",
   "license": "MIT",
   "schematics": "./src/collection.json",
   "dependencies": {
