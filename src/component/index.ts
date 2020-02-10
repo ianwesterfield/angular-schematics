@@ -59,7 +59,6 @@ export function component(options: any): Rule {
 
 function applySchematic(options: any, tree: Tree, context: SchematicContext): Rule {
   let files = url('./files');
-
   const root = helpers.getProjectRoot(options, tree);
   const folderPath = normalize(strings.dasherize(`${root}/${options.path}/${options.name}`));
 
